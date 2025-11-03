@@ -1,0 +1,76 @@
+# Onboarding Plan: Building AI Workflows for Document Processing at Natera
+
+## Introduction
+This plan is an introductory exercise to familiarize you with how we build AI-driven workflows at Natera. It's designed as a non-production take-home assignment to be completed independently before you start working with us. The focus is on prototyping AWS Step Function workflows for document ingestion, processing, extraction, and reporting—using sample documents like requisition forms, patient intake forms, and insurance forms. This will give you a taste of our event-driven architecture, modular design, and model performance evaluation practices.
+
+The primary goal is to create a simple, flexible prototype that measures the performance of various OCR tools (e.g., AWS Textract, Mistral AI, Nanonets OCR) and LLMs (e.g., ChatGPT, Claude, Grok) in extracting data from these documents. This will allow you to experiment with comparing and swapping providers easily. Note: This is for learning purposes only—no need for production-grade polish, security, or scalability.
+
+## Project Goals
+- Build a prototype workflow to process uploaded documents, split them, classify them, extract data using OCR and LLMs, and generate basic performance reports.
+- Enable easy swapping of OCR providers (e.g., Textract → Mistral AI or Nanonets) and LLMs (e.g., via AWS Bedrock with models like o4-mini-high or Grok4).
+- Measure success rates of OCR alone, LLM alone, and OCR + LLM combined to determine the best combinations.
+- As a stretch goal, create a simple frontend in React/Next.js for uploading documents and viewing reports.
+
+## High-Level Architecture and Process
+We'll use AWS services with CDK for infrastructure as code. The workflow is event-driven and uses Step Functions for orchestration. Focus on a minimal prototype—feel free to simplify where needed for this exercise.
+
+1. **Document Upload**: User uploads a file (e.g., PDF) to an S3 bucket.
+2. **Event Trigger**: S3 sends an event to AWS EventBridge.
+3. **Document Splitting**: EventBridge triggers a Step Function workflow that invokes Lambdas to split the document into components (e.g., requisition form, insurance card, etc.), and stores the split docs back in S3. Consider using a vision-capable LLM via AWS Bedrock for intelligent splitting based on content analysis.
+4. **Classification**: Classify/categorize the split documents (e.g., req, insurance card). This can leverage Bedrock models for AI-driven classification.
+5. **OCR Extraction**: Use an OCR service (initially AWS Textract) to extract data. Store extracted data as metadata in DynamoDB, associated with the classification and document keys.
+6. **LLM Extraction**: Use AWS Bedrock with a vision-capable model (e.g., o4-mini-high, Grok4) to extract additional fields, such as women's health fields + descriptions. Store as additional metadata in DynamoDB.
+7. **Vectorization (Optional Extension)**: Generate vector embeddings of the processed documents or extracted text using Bedrock (e.g., Amazon Titan Embeddings model) and store them in DynamoDB for potential semantic search or RAG applications.
+8. **Reporting**: Generate a report by querying DynamoDB, comparing:
+   - Success of OCR alone.
+   - Success of LLM alone.
+   - Combined OCR + LLM success.
+   This will help evaluate which OCR/LLM combinations perform best for our documents.
+
+The system should be modular to swap OCR/LLM providers via configuration or minimal code changes. For this intro exercise, aim to demonstrate swapping at least one provider (e.g., mock or basic API switch).
+
+## Technologies
+- **Infrastructure**: AWS CDK (for defining S3, EventBridge, Step Functions, Lambdas, DynamoDB, API Gateway, etc.).
+- **Storage**: S3 for documents; DynamoDB for structured metadata (extractions, classifications, reports data).
+- **Event Handling**: EventBridge as the message queue.
+- **Workflow Orchestration**: AWS Step Functions with Lambda integrations for processing steps (splitting, classification, extraction, reporting). Use Bedrock for AI-enhanced splitting and classification where appropriate.
+- **OCR**: Start with AWS Textract; make it swappable with APIs like Mistral AI or Nanonets OCR.
+- **LLM**: AWS Bedrock for models with vision capabilities (e.g., o4-mini-high, Grok4); swappable with others like ChatGPT or Claude via their APIs.
+- **Frontend (Stretch Goal)**: If time allows, build a simple React/Next.js UI for uploading documents and viewing reports/extraction results. Use API Gateway to expose endpoints for the frontend to interact with the backend (e.g., trigger uploads, query reports from DynamoDB via Lambda). Skip advanced auth for this exercise.
+- **Integration**: Hook into existing React/Next.js UIs for other teams to display processed data, likely via API Gateway endpoints.
+- **Vectorization (Optional)**: Use AWS Bedrock for generating embeddings (e.g., Titan Embeddings); store in DynamoDB (e.g., using a table with vector attributes for simple similarity searches).
+
+## Onboarding Tasks
+
+1. **Setup Environment**:
+   - Set up a personal AWS account/credentials (free tier is fine for this prototype).
+   - Install CDK and necessary dependencies (Node.js, AWS CLI).
+   - Create a new repo for this exercise.
+
+2. **Review Resources**:
+   - Review the attached PDF and CSV to understand the document structure and fields to extract.
+
+3. **Build Infrastructure**:
+   - Use CDK to provision S3 bucket, EventBridge rules, Step Functions, and Lambdas.
+
+4. **Implement Workflow Steps**:
+   - Lambda for document splitting (e.g., using Bedrock for intelligent page analysis).
+   - Lambda for classification (e.g., using Bedrock to categorize based on content).
+   - Lambda for OCR extraction (modular for swapping providers), storing results in DynamoDB.
+   - Lambda for LLM extraction (using Bedrock, modular for other LLMs), storing results in DynamoDB.
+   - (Optional) Lambda for vectorization: Generate and store embeddings using Bedrock.
+   - Lambda for generating reports by querying DynamoDB.
+
+5. **Testing and Measurement**:
+   - Upload sample PDFs and run the workflow.
+   - Implement metrics to measure extraction accuracy against the known fields in the CSV.
+   - Generate reports comparing OCR/LLM performance, using data from DynamoDB.
+
+6. **Frontend and Integration**:
+   - (Stretch Goal) Build a basic React/Next.js app for testing uploads and viewing results, integrating with API Gateway.
+
+7. **Iteration**:
+   - Test swapping at least one OCR/LLM provider and note performance differences.
+   - Refine based on your report insights, and include a brief reflection in your summary.
+
+Let me know if you need any clarifications! Once complete, share your summary and any code artifacts for discussion.
