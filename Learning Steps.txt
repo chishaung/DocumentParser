@@ -1,0 +1,52 @@
+AWS 文件處理專案學習步驟
+1. AWS 帳號與環境設置
+註冊 AWS 免費帳號
+設定 MFA、多重驗證
+設定預算警報
+安裝 Node.js、AWS CLI
+設定 AWS CLI
+2. 建立專案儲存庫與安裝 AWS CDK
+建立 Git 專案（主資料夾、infra 子資料夾）
+建立 .gitignore
+安裝 AWS CDK（npm install -g aws-cdk）
+初始化 CDK 專案（cdk init app --language typescript）
+安裝 CDK 相關套件（S3、Lambda、Step Functions 等）
+3. 用 CDK 建立基礎資源
+編輯 Stack 檔案，建立 S3 Bucket
+解釋 S3 用途
+cdk synth、cdk deploy 部署資源
+4. 建立 EventBridge（事件觸發服務）
+解釋 EventBridge 用途
+編輯 Stack，建立 EventBridge 規則
+部署資源
+5. 建立 Lambda（無伺服器運算）
+解釋 Lambda 用途
+編輯 Stack，建立 Lambda 函數
+部署資源
+6. 建立 Step Functions（工作流程協調）
+解釋 Step Functions 用途
+編輯 Stack，建立 Step Functions 狀態機
+部署資源
+7. 建立 DynamoDB（NoSQL 資料庫）
+解釋 DynamoDB 用途
+編輯 Stack，建立 DynamoDB Table
+部署資源
+8. 前端/後端應用程式專案
+建立 React/Next.js 前端專案
+建立 Node.js/TypeScript Lambda 後端專案
+讓前端/後端與 AWS 資源互動（例如上傳文件到 S3）
+9. OCR 與 LLM 整合
+介紹 AWS Textract、第三方 OCR、LLM（如 Bedrock、OpenAI）
+實作 OCR/LLM 資料抽取流程
+測試與比較不同模型效能
+10. 報表與效能評估
+收集 OCR/LLM 處理結果
+產生簡易報表，評估各模型效能
+11. 專案總結與心得
+撰寫學習心得、專案總結
+整理程式碼與文件，準備分享
+備註：
+每個步驟我都會詳細解釋服務用途、操作方法，並等你學習完再進行下一步。
+你可以隨時把這份步驟貼回 prompt，讓我們對話更有脈絡！
+
+如果有想調整順序或加細節，也可以告訴我！
