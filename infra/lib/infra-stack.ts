@@ -48,10 +48,21 @@ export class InfraStack extends cdk.Stack {
     });
     resultsTable.grantWriteData(processDocumentLambda);
 
-    // S3 directly triggers Lambda
+    // 建立 DocumentSplitLambda
+    const documentSplitLambda = new lambda.Function(this, 'DocumentSplitLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset('lambda/document-split'),
+      environment: {
+        BUCKET_NAME: documentsBucket.bucketName,
+      },
+    });
+    documentsBucket.grantReadWrite(documentSplitLambda);
+
+    // S3 只觸發 DocumentSplitLambda
     documentsBucket.addEventNotification(
       s3.EventType.OBJECT_CREATED,
-      new s3n.LambdaDestination(processDocumentLambda)
+      new s3n.LambdaDestination(documentSplitLambda)
     );
 
     const lambdaTask = new tasks.LambdaInvoke(this, 'ProcessDocumentTask', {
@@ -63,6 +74,5 @@ export class InfraStack extends cdk.Stack {
       definition: lambdaTask,
       timeout: cdk.Duration.minutes(5),
     });
-
   }
 }

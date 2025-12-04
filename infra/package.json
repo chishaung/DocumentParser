@@ -27,6 +27,7 @@
     "@aws-cdk/aws-s3": "^1.203.0",
     "@aws-cdk/aws-stepfunctions": "^1.203.0",
     "aws-cdk-lib": "2.215.0",
-    "constructs": "^10.0.0"
+    "constructs": "^10.0.0",
+    "pdf-lib": "^1.17.1"
   }
 }
