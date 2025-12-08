@@ -84,6 +84,20 @@ export class InfraStack extends cdk.Stack {
       })
     );
 
+    // 4.5 NEW: Lambda to execute the split based on the plan
+    const executeSplitLambda = new lambda.Function(this, 'ExecuteSplitLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset('lambda/split-document'),
+      environment: {
+        BUCKET_NAME: documentsBucket.bucketName,
+      },
+      timeout: cdk.Duration.minutes(2),
+      memorySize: 1024,
+    });
+
+    documentsBucket.grantReadWrite(executeSplitLambda);
+
 
     // 5. Step Functions State Machine Definition
     const splitDocumentTask = new tasks.LambdaInvoke(this, 'StartTextractJob', {
@@ -107,6 +121,12 @@ export class InfraStack extends cdk.Stack {
       outputPath: '$.Payload',
     });
 
+    const executeSplitTask = new tasks.LambdaInvoke(this, 'ExecuteSplit', {
+      lambdaFunction: executeSplitLambda,
+      inputPath: '$', // Pass the output of the previous step
+      outputPath: '$.Payload',
+    });
+
     const jobFailed = new sfn.Fail(this, 'JobFailed', {
       cause: 'Textract Job Failed',
       error: 'TextractJobFailed',
@@ -114,7 +134,8 @@ export class InfraStack extends cdk.Stack {
 
     const definition = splitDocumentTask
       .next(waitState)
-      .next(getResultsTask);
+      .next(getResultsTask)
+      .next(executeSplitTask);
       // In a full implementation, you would add a Choice state here
       // to check the status from getResultsTask and either loop back to waitState,
       // proceed to the next step, or go to the jobFailed state.
@@ -133,6 +154,9 @@ export class InfraStack extends cdk.Stack {
         detail: {
           bucket: {
             name: [documentsBucket.bucketName],
+          },
+          object: {
+            key: [{ "anything-but": { prefix: "split/" } }] as any // Exclude the output folder to prevent infinite loops
           },
         },
       },

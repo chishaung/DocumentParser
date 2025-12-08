@@ -1,0 +1,10 @@
+{
+  "name": "split-document",
+  "version": "1.0.0",
+  "description": "Lambda to split PDF documents based on a plan",
+  "main": "index.js",
+  "dependencies": {
+    "pdf-lib": "^1.17.1",
+    "@aws-sdk/client-s3": "^3.0.0"
+  }
+}
