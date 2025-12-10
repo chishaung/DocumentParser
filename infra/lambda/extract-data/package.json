@@ -1,0 +1,11 @@
+{
+  "name": "extract-data",
+  "version": "1.0.0",
+  "description": "Lambda to extract data from split documents using Textract and Bedrock",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-textract": "^3.0.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.0.0",
+    "@aws-sdk/client-dynamodb": "^3.0.0"
+  }
+}

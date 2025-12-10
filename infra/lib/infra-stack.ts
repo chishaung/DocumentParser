@@ -162,5 +162,62 @@ export class InfraStack extends cdk.Stack {
       },
       targets: [new targets.SfnStateMachine(stateMachine)],
     });
+
+    // 7. NEW: Lambda for extracting data from split documents
+    const extractDataLambda = new lambda.Function(this, 'ExtractDataLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset('lambda/extract-data'),
+      environment: {
+        TABLE_NAME: resultsTable.tableName,
+      },
+      timeout: cdk.Duration.minutes(2),
+      memorySize: 1024,
+    });
+
+    // Grant permissions
+    documentsBucket.grantRead(extractDataLambda);
+    resultsTable.grantWriteData(extractDataLambda);
+    extractDataLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ['textract:DetectDocumentText', 'textract:AnalyzeDocument'],
+        resources: ['*'],
+      })
+    );
+    extractDataLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ['bedrock:InvokeModel'],
+        resources: [`arn:aws:bedrock:${cdk.Aws.REGION}::foundation-model/*`],
+      })
+    );
+
+    // 8. NEW: Step Function for processing split documents
+    const extractDataTask = new tasks.LambdaInvoke(this, 'ExtractDataTask', {
+      lambdaFunction: extractDataLambda,
+      inputPath: '$', // Pass the entire event
+      outputPath: '$.Payload',
+    });
+
+    const childStateMachine = new sfn.StateMachine(this, 'ChildDocumentProcessingStateMachine', {
+      definitionBody: sfn.DefinitionBody.fromChainable(extractDataTask),
+      timeout: cdk.Duration.minutes(5),
+    });
+
+    // 9. NEW: EventBridge Rule for split documents
+    new events.Rule(this, 'S3SplitObjectCreatedRule', {
+      eventPattern: {
+        source: ['aws.s3'],
+        detailType: ['Object Created'],
+        detail: {
+          bucket: {
+            name: [documentsBucket.bucketName],
+          },
+          object: {
+            key: [{ prefix: "split/" }] as any // ONLY trigger for split documents
+          },
+        },
+      },
+      targets: [new targets.SfnStateMachine(childStateMachine)],
+    });
   }
 }
