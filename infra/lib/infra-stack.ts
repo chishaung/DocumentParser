@@ -8,6 +8,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -18,12 +19,26 @@ export class InfraStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       eventBridgeEnabled: true, // Enable EventBridge notifications
+      cors: [
+        {
+          allowedMethods: [s3.HttpMethods.PUT, s3.HttpMethods.POST],
+          allowedOrigins: ['*'],
+          allowedHeaders: ['*'],
+        },
+      ],
     });
 
     // 2. DynamoDB Table to store results
     const resultsTable = new dynamodb.Table(this, 'ResultsTable', {
       partitionKey: { name: 'documentId', type: dynamodb.AttributeType.STRING },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    // Add GSI for querying children by parentDocumentId
+    resultsTable.addGlobalSecondaryIndex({
+      indexName: 'ParentDocumentIndex',
+      partitionKey: { name: 'parentDocumentId', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
     });
 
     // 3. Document Splitting Lambda (The first step in our workflow)
@@ -218,6 +233,67 @@ export class InfraStack extends cdk.Stack {
         },
       },
       targets: [new targets.SfnStateMachine(childStateMachine)],
+    });
+
+    // ==========================================
+    // API Gateway & Lambdas for Frontend
+    // ==========================================
+
+    // 10. API Gateway
+    const api = new apigateway.RestApi(this, 'DocumentParserApi', {
+      restApiName: 'Document Parser Service',
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+      },
+    });
+
+    // 11. Lambda: Get Upload URL
+    const getUploadUrlLambda = new lambda.Function(this, 'GetUploadUrlLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'get-upload-url.handler',
+      code: lambda.Code.fromAsset('lambda/api'),
+      environment: {
+        BUCKET_NAME: documentsBucket.bucketName,
+      },
+    });
+    documentsBucket.grantPut(getUploadUrlLambda);
+
+    // 12. Lambda: Get Documents List
+    const getDocumentsLambda = new lambda.Function(this, 'GetDocumentsLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'get-documents.handler',
+      code: lambda.Code.fromAsset('lambda/api'),
+      environment: {
+        TABLE_NAME: resultsTable.tableName,
+      },
+    });
+    resultsTable.grantReadData(getDocumentsLambda);
+
+    // 13. Lambda: Get Document Detail
+    const getDocumentDetailLambda = new lambda.Function(this, 'GetDocumentDetailLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'get-document-detail.handler',
+      code: lambda.Code.fromAsset('lambda/api'),
+      environment: {
+        TABLE_NAME: resultsTable.tableName,
+      },
+    });
+    resultsTable.grantReadData(getDocumentDetailLambda);
+
+    // 14. API Routes
+    const uploadResource = api.root.addResource('upload-url');
+    uploadResource.addMethod('GET', new apigateway.LambdaIntegration(getUploadUrlLambda));
+
+    const documentsResource = api.root.addResource('documents');
+    documentsResource.addMethod('GET', new apigateway.LambdaIntegration(getDocumentsLambda));
+
+    const documentDetailResource = documentsResource.addResource('{id}');
+    documentDetailResource.addMethod('GET', new apigateway.LambdaIntegration(getDocumentDetailLambda));
+
+    // Output the API URL
+    new cdk.CfnOutput(this, 'ApiUrl', {
+      value: api.url,
     });
   }
 }
