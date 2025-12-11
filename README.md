@@ -28,7 +28,7 @@ The Llama 3 model proved highly effective for handwritten content. It successful
 ### Claude 3 Haiku Performance
 The Haiku model showed remarkable resilience with poor image quality. It successfully extracted most data columns from a blurred photo of an Insurance Card. Additionally, it maintained a strong performance on the Testing Requisition Form, making it a versatile contender.
 
-![Haiku Analysis Results](report/Haiku.png)
+![Haiku Analysis Results](report/haiku.png)
 
 ## Other Models
 We also evaluated **Claude 3.5 Sonnet**, **Cohere Command R+**, **Mistral Large**, and **Amazon Titan**. In this specific test suite, these models encountered difficulties and did not process the data as accurately as Haiku or Llama 3 for the selected samples.
