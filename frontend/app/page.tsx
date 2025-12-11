@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
-import { Upload, FileText, Loader2, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle, AlertCircle, RefreshCw, BarChart3 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -76,13 +76,22 @@ export default function Dashboard() {
             <h1 className="text-3xl font-bold text-gray-900">Document Parser</h1>
             <p className="text-gray-500 mt-1">Upload and process your medical documents</p>
           </div>
-          <button 
-            onClick={fetchDocuments} 
-            className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
-            title="Refresh"
-          >
-            <RefreshCw size={20} />
-          </button>
+          <div className="flex gap-2">
+            <Link 
+              href="/reports" 
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+            >
+              <BarChart3 size={18} />
+              Reports
+            </Link>
+            <button 
+              onClick={fetchDocuments} 
+              className="p-2 text-gray-500 hover:text-gray-700 transition-colors bg-white border border-gray-200 rounded-lg"
+              title="Refresh"
+            >
+              <RefreshCw size={20} />
+            </button>
+          </div>
         </header>
 
         {/* Upload Section */}

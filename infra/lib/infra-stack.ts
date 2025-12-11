@@ -281,6 +281,17 @@ export class InfraStack extends cdk.Stack {
     });
     resultsTable.grantReadData(getDocumentDetailLambda);
 
+    // 13.5 Lambda: Get Stats
+    const getStatsLambda = new lambda.Function(this, 'GetStatsLambda', {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'get-stats.handler',
+      code: lambda.Code.fromAsset('lambda/api'),
+      environment: {
+        TABLE_NAME: resultsTable.tableName,
+      },
+    });
+    resultsTable.grantReadData(getStatsLambda);
+
     // 14. API Routes
     const uploadResource = api.root.addResource('upload-url');
     uploadResource.addMethod('GET', new apigateway.LambdaIntegration(getUploadUrlLambda));
@@ -290,6 +301,9 @@ export class InfraStack extends cdk.Stack {
 
     const documentDetailResource = documentsResource.addResource('{id}');
     documentDetailResource.addMethod('GET', new apigateway.LambdaIntegration(getDocumentDetailLambda));
+
+    const statsResource = api.root.addResource('stats');
+    statsResource.addMethod('GET', new apigateway.LambdaIntegration(getStatsLambda));
 
     // Output the API URL
     new cdk.CfnOutput(this, 'ApiUrl', {
