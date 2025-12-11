@@ -15,18 +15,22 @@ We tested several Large Language Models (LLMs) integrated with OCR capabilities 
 ## Key Findings
 Following manual validation of the extracted data, we observed distinct strengths for different models:
 
-*   **Claude 3 Haiku**: Demonstrated superior performance on **Insurance Cards**, particularly with low-quality inputs.
-*   **Meta Llama 3**: Achieved the best results on **Testing Requisition Forms**, excelling at deciphering handwriting.
+*   **Claude 3 Haiku**: Demonstrated superior performance on **Requisition Forms** when provided with a field schema, significantly outperforming Llama 3 by extracting more valid fields (only 4 nulls vs 10 nulls).
+*   **Insurance Card Analysis**: Both **Haiku** and **Llama 3** showed comparable performance, with both models successfully extracting only the three core identification fields (Payer Name, Member ID, Group ID).
 
 ## Detailed Analysis
 
 ### Meta Llama 3 Performance
-The Llama 3 model proved highly effective for handwritten content. It successfully extracted the majority of fields from the handwritten Requisition Form. However, its performance on the Insurance Card was limited, extracting only three columns.
+On **Insurance Cards**, Llama 3 performed similarly to Haiku, successfully identifying only the three core fields: **Payer Name**, **Member ID**, and **Group ID**.
+
+However, when analyzing the **Requisition Form** with the provided field schema, Llama 3 showed lower accuracy than Haiku, leaving approximately **10 fields as null**.
 
 ![Llama 3 Analysis Results](report/llama.png)
 
 ### Claude 3 Haiku Performance
-The Haiku model showed remarkable resilience with poor image quality. It successfully extracted most data columns from a blurred photo of an Insurance Card. Additionally, it maintained a strong performance on the Testing Requisition Form, making it a versatile contender.
+Haiku demonstrated superior performance on the **Requisition Form** when guided by the known field definitions. It was highly accurate, failing to extract only **4 fields**.
+
+On the **Insurance Card**, it matched Llama's performance, extracting the same three key fields.
 
 ![Haiku Analysis Results](report/haiku.png)
 
