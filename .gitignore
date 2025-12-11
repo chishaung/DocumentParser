@@ -2,3 +2,9 @@ node_modules/
 .env
 .aws-sam/
 .DS_Store
+
+# Project documentation and test files
+Learning Steps.txt
+fieldset for req form.csv
+OnBoardingPlan.txt
+pretend req form*.pdf
