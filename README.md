@@ -32,3 +32,14 @@ The Haiku model showed remarkable resilience with poor image quality. It success
 
 ## Other Models
 We also evaluated **Claude 3.5 Sonnet**, **Cohere Command R+**, **Mistral Large**, and **Amazon Titan**. In this specific test suite, these models encountered difficulties and did not process the data as accurately as Haiku or Llama 3 for the selected samples.
+
+![Other Models](report/dashboard.png)
+
+## Project Implementation Summary
+This project demonstrates a complete end-to-end serverless architecture for intelligent document processing:
+
+1.  **Infrastructure**: Built entirely using **AWS CDK** for reproducible Infrastructure as Code (IaC).
+2.  **Backend Workflow**: Implemented an event-driven pipeline using **S3**, **EventBridge**, and **Step Functions** to orchestrate document processing.
+3.  **AI Integration**: Leveraged **AWS Textract** for raw OCR and **AWS Bedrock** to invoke various LLMs (Claude, Llama, Mistral) for intelligent data extraction and classification.
+4.  **Frontend Application**: Developed a modern **Next.js** dashboard allowing users to upload files, view processing status, and analyze extraction results via a reporting interface.
+5.  **Model Evaluation**: Incorporated a flexible mechanism to dynamically switch and test different LLMs to optimize for accuracy and cost.
